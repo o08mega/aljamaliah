@@ -15,8 +15,8 @@ cp .env.example .env.local
 ## ربط قاعدة البيانات وتهيئة الجداول (Supabase)
 
 1. افتح مشروعك في Supabase ثم ادخل إلى **SQL Editor**.
-2. انسخ محتوى الملف `supabase/migrations/0001_init.sql` والصقه ثم شغله لإنشاء جداول الأقسام والخدمات والإعلانات.
-3. (اختياري) إذا كنت تحتاج الجداول القديمة مثل `profiles` أو `site_settings` فقم أيضًا بتشغيل `supabase/schema.sql`.
+2. لتحديث كامل مع حذف البيانات القديمة، انسخ محتوى الملف `supabase/migrations/0002_full_reset.sql` والصقه ثم شغله.
+3. (بديل) إذا كنت تريد البداية بدون حذف بيانات قديمة استخدم `supabase/migrations/0001_init.sql`.
 4. أنشئ مستخدم Admin عبر لوحة Auth في Supabase.
 5. أضف `user.id` في جدول `admins` لتفعيل صلاحيات الإدارة.
 6. حدث بيانات الاتصال في `.env.local`:
