@@ -81,6 +81,207 @@ insert into public.site_settings (site_name)
 select 'البوابة الجمالية الدقهلية'
 where not exists (select 1 from public.site_settings);
 
+-- Enable Row Level Security
+alter table public.profiles enable row level security;
+alter table public.services enable row level security;
+alter table public.posts enable row level security;
+alter table public.comments enable row level security;
+alter table public.service_reviews enable row level security;
+alter table public.site_settings enable row level security;
+
+-- Profiles policies
+create policy "Profiles are viewable by owner"
+on public.profiles
+for select
+using (auth.uid() = id);
+
+create policy "Profiles are insertable by owner"
+on public.profiles
+for insert
+with check (auth.uid() = id);
+
+create policy "Profiles are updatable by owner"
+on public.profiles
+for update
+using (auth.uid() = id);
+
+-- Services policies
+create policy "Services are viewable by everyone"
+on public.services
+for select
+using (true);
+
+create policy "Services are insertable by owner"
+on public.services
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Services are updatable by owner or admin"
+on public.services
+for update
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Services are deletable by owner or admin"
+on public.services
+for delete
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+-- Posts policies
+create policy "Posts are viewable when published or by owner/admin"
+on public.posts
+for select
+using (
+  is_published
+  or auth.uid() = author_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Posts are insertable by owner"
+on public.posts
+for insert
+with check (auth.uid() = author_id);
+
+create policy "Posts are updatable by owner or admin"
+on public.posts
+for update
+using (
+  auth.uid() = author_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Posts are deletable by owner or admin"
+on public.posts
+for delete
+using (
+  auth.uid() = author_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+-- Comments policies
+create policy "Comments are viewable when approved or by owner/admin"
+on public.comments
+for select
+using (
+  is_approved
+  or auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Comments are insertable by owner"
+on public.comments
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Comments are updatable by owner or admin"
+on public.comments
+for update
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Comments are deletable by owner or admin"
+on public.comments
+for delete
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+-- Service reviews policies
+create policy "Service reviews are viewable by everyone"
+on public.service_reviews
+for select
+using (true);
+
+create policy "Service reviews are insertable by owner"
+on public.service_reviews
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Service reviews are updatable by owner or admin"
+on public.service_reviews
+for update
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Service reviews are deletable by owner or admin"
+on public.service_reviews
+for delete
+using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+-- Site settings policies
+create policy "Site settings are viewable by admins"
+on public.site_settings
+for select
+using (
+  exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Site settings are insertable by admins"
+on public.site_settings
+for insert
+with check (
+  exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
+create policy "Site settings are updatable by admins"
+on public.site_settings
+for update
+using (
+  exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  )
+);
+
 -- Auto create profile on signup
 create or replace function public.handle_new_user()
 returns trigger as $$
